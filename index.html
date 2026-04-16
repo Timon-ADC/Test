@@ -1,103 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Person Image Scanner</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Annoy Button</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      padding: 20px;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       background: #f5f5f5;
     }
-    h2 {
-      margin-bottom: 10px;
+
+    .container {
+      text-align: center;
     }
-    input {
-      padding: 12px;
-      font-size: 16px;
-      width: 80%;
-      max-width: 300px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #007BFF;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #results {
-      margin-top: 20px;
-    }
+
     img {
-      width: 100%;
-      max-width: 300px;
-      margin: 10px auto;
-      display: block;
+      width: 220px;
+      transition: transform 0.3s ease;
+    }
+
+    .angry {
+      transform: scale(1.1) rotate(-4deg);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 20px 40px;
+      font-size: 24px;
+      background: red;
+      color: white;
+      border: none;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      cursor: pointer;
+      box-shadow: 0 6px 0 #b30000;
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #b30000;
     }
   </style>
 </head>
+
 <body>
+  <div class="container">
+    <img id="man" alt="cartoon man" />
+    <br />
+    <button onclick="annoy()">ANNOY</button>
+  </div>
 
-<h2>Image Scanner</h2>
-<input id="nameInput" placeholder="Enter a person's name">
-<br>
-<button onclick="scan()">Scan</button>
+  <script>
+    const normalFace = `data:image/svg+xml;utf8,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+      <defs>
+        <radialGradient id='skin' cx='50%' cy='40%' r='60%'>
+          <stop offset='0%' stop-color='%23ffe0bd'/>
+          <stop offset='100%' stop-color='%23e0a889'/>
+        </radialGradient>
+      </defs>
 
-<div id="results"></div>
+      <ellipse cx='100' cy='105' rx='75' ry='85' fill='url(%23skin)'/>
 
-<script>
-async function scan() {
-  const query = document.getElementById("nameInput").value;
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "Scanning...";
+      <path d='M30 90 Q50 20 100 30 Q150 20 170 90 Q140 60 100 65 Q60 60 30 90' fill='%23333'/>
 
-  try {
-    // Step 1: get token
-    const tokenRes = await fetch("https://duckduckgo.com/?q=" + encodeURIComponent(query));
-    const tokenText = await tokenRes.text();
-    const vqdMatch = tokenText.match(/vqd='(.*?)'/);
+      <ellipse cx='70' cy='100' rx='10' ry='6' fill='white'/>
+      <ellipse cx='130' cy='100' rx='10' ry='6' fill='white'/>
+      <circle cx='70' cy='100' r='3'/>
+      <circle cx='130' cy='100' r='3'/>
 
-    if (!vqdMatch) {
-      resultsDiv.innerHTML = "Failed to get results.";
-      return;
+      <path d='M60 85 Q70 80 80 85' stroke='%23333' stroke-width='3' fill='none'/>
+      <path d='M120 85 Q130 80 140 85' stroke='%23333' stroke-width='3' fill='none'/>
+
+      <path d='M100 105 Q95 120 100 125' stroke='%23c48a6a' stroke-width='2' fill='none'/>
+
+      <path d='M70 140 Q100 155 130 140' stroke='%23333' stroke-width='3' fill='none'/>
+    </svg>`;
+
+    const angryFace = `data:image/svg+xml;utf8,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+      <defs>
+        <radialGradient id='skin' cx='50%' cy='40%' r='60%'>
+          <stop offset='0%' stop-color='%23ffe0bd'/>
+          <stop offset='100%' stop-color='%23e0a889'/>
+        </radialGradient>
+      </defs>
+
+      <ellipse cx='100' cy='105' rx='75' ry='85' fill='url(%23skin)'/>
+
+      <path d='M30 90 Q50 20 100 30 Q150 20 170 90 Q140 60 100 65 Q60 60 30 90' fill='%23333'/>
+
+      <ellipse cx='70' cy='105' rx='10' ry='5' fill='white'/>
+      <ellipse cx='130' cy='105' rx='10' ry='5' fill='white'/>
+      <circle cx='70' cy='105' r='3'/>
+      <circle cx='130' cy='105' r='3'/>
+
+      <line x1='55' y1='85' x2='85' y2='95' stroke='%23333' stroke-width='4'/>
+      <line x1='145' y1='85' x2='115' y2='95' stroke='%23333' stroke-width='4'/>
+
+      <path d='M100 105 Q95 120 100 125' stroke='%23c48a6a' stroke-width='2' fill='none'/>
+
+      <path d='M70 150 Q100 130 130 150' stroke='%23333' stroke-width='4' fill='none'/>
+    </svg>`;
+
+    const man = document.getElementById("man");
+    man.src = normalFace;
+
+    function annoy() {
+      man.src = angryFace;
+      man.classList.add("angry");
+
+      setTimeout(() => {
+        man.src = normalFace;
+        man.classList.remove("angry");
+      }, 800);
     }
-
-    const vqd = vqdMatch[1];
-
-    // Step 2: fetch images
-    const imgRes = await fetch(`https://duckduckgo.com/i.js?q=${encodeURIComponent(query)}&vqd=${vqd}&o=json`);
-    const imgData = await imgRes.json();
-
-    const images = imgData.results.slice(0, 3);
-
-    resultsDiv.innerHTML = "";
-
-    images.forEach(img => {
-      const imageEl = document.createElement("img");
-      imageEl.src = img.image;
-      resultsDiv.appendChild(imageEl);
-    });
-
-    if (images.length === 0) {
-      resultsDiv.innerHTML = "No images found.";
-    }
-
-  } catch (err) {
-    resultsDiv.innerHTML = "Error fetching images.";
-  }
-}
-</script>
-
+  </script>
 </body>
 </html>
