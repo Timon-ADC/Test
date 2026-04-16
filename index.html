@@ -2,124 +2,222 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Annoy Button</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annoy Him</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
       margin: 0;
-      font-family: Arial, sans-serif;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      background: #f5f5f5;
+      background: #f0f4f8;
+      font-family: sans-serif;
+      gap: 40px;
+      padding: 20px;
     }
 
-    .container {
-      text-align: center;
-    }
-
-    img {
+    .character-container {
       width: 220px;
-      transition: transform 0.3s ease;
+      height: 220px;
+      position: relative;
     }
 
-    .angry {
-      transform: scale(1.1) rotate(-4deg);
+    /* ── SVG cartoon man ── */
+    svg#man {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.1s ease;
     }
 
-    button {
-      margin-top: 20px;
-      padding: 20px 40px;
-      font-size: 24px;
-      background: red;
+    /* Eyes default */
+    .eye-left, .eye-right {
+      transition: all 0.15s ease;
+    }
+
+    /* Mouth default */
+    .mouth {
+      transition: d 0.15s ease;
+    }
+
+    /* Eyebrows */
+    .brow-left, .brow-right {
+      transition: all 0.15s ease;
+    }
+
+    /* Angry state applied via JS */
+    svg#man.angry {
+      transform: scale(1.08);
+    }
+
+    /* Button */
+    #annoyBtn {
+      background: #e63946;
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 18px;
+      padding: 22px 60px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 6px 0 #b30000;
+      box-shadow: 0 6px 20px rgba(230, 57, 70, 0.45);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
-    button:active {
-      transform: translateY(3px);
-      box-shadow: 0 3px 0 #b30000;
+    #annoyBtn:active {
+      transform: scale(0.96);
+      box-shadow: 0 3px 10px rgba(230, 57, 70, 0.35);
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <img id="man" alt="cartoon man" />
-    <br />
-    <button onclick="annoy()">ANNOY</button>
+
+  <div class="character-container">
+    <!--
+      Cartoon man built entirely with inline SVG.
+      IDs on face parts are toggled by JS.
+    -->
+    <svg id="man" viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Body -->
+      <rect x="28" y="90" width="44" height="50" rx="8" fill="#4a90d9"/>
+
+      <!-- Neck -->
+      <rect x="43" y="78" width="14" height="16" rx="4" fill="#f4c27f"/>
+
+      <!-- Head -->
+      <ellipse cx="50" cy="58" rx="26" ry="28" fill="#f4c27f"/>
+
+      <!-- Hair -->
+      <ellipse cx="50" cy="32" rx="26" ry="12" fill="#3b2a1a"/>
+      <rect x="24" y="32" width="8" height="14" rx="4" fill="#3b2a1a"/>
+      <rect x="68" y="32" width="8" height="14" rx="4" fill="#3b2a1a"/>
+
+      <!-- Ears -->
+      <ellipse cx="24" cy="58" rx="5" ry="7" fill="#f4c27f"/>
+      <ellipse cx="76" cy="58" rx="5" ry="7" fill="#f4c27f"/>
+
+      <!-- Eyebrows (normal: flat) -->
+      <line id="browLeft"  x1="34" y1="47" x2="44" y2="47" stroke="#3b2a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <line id="browRight" x1="56" y1="47" x2="66" y2="47" stroke="#3b2a1a" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- Eyes (normal: circles) -->
+      <circle id="eyeLeft"  cx="39" cy="55" r="4" fill="white"/>
+      <circle id="eyeRight" cx="61" cy="55" r="4" fill="white"/>
+      <circle id="pupilLeft"  cx="39" cy="55" r="2" fill="#222"/>
+      <circle id="pupilRight" cx="61" cy="55" r="2" fill="#222"/>
+
+      <!-- Nose -->
+      <ellipse cx="50" cy="63" rx="3" ry="2" fill="#e0a86a"/>
+
+      <!-- Mouth (normal: smile) -->
+      <path id="mouth" d="M 40 72 Q 50 80 60 72" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+      <!-- Arms -->
+      <rect x="6"  y="90" width="22" height="10" rx="5" fill="#4a90d9"/>
+      <rect x="72" y="90" width="22" height="10" rx="5" fill="#4a90d9"/>
+
+      <!-- Legs -->
+      <rect x="30" y="136" width="16" height="20" rx="6" fill="#2c2c54"/>
+      <rect x="54" y="136" width="16" height="20" rx="6" fill="#2c2c54"/>
+
+      <!-- Shoes -->
+      <ellipse cx="38" cy="156" rx="10" ry="5" fill="#1a1a2e"/>
+      <ellipse cx="62" cy="156" rx="10" ry="5" fill="#1a1a2e"/>
+
+    </svg>
   </div>
 
+  <button id="annoyBtn">ANNOY</button>
+
   <script>
-    const normalFace = `data:image/svg+xml;utf8,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
-      <defs>
-        <radialGradient id='skin' cx='50%' cy='40%' r='60%'>
-          <stop offset='0%' stop-color='%23ffe0bd'/>
-          <stop offset='100%' stop-color='%23e0a889'/>
-        </radialGradient>
-      </defs>
+    const man        = document.getElementById('man');
+    const browLeft   = document.getElementById('browLeft');
+    const browRight  = document.getElementById('browRight');
+    const eyeLeft    = document.getElementById('eyeLeft');
+    const eyeRight   = document.getElementById('eyeRight');
+    const pupilLeft  = document.getElementById('pupilLeft');
+    const pupilRight = document.getElementById('pupilRight');
+    const mouth      = document.getElementById('mouth');
 
-      <ellipse cx='100' cy='105' rx='75' ry='85' fill='url(%23skin)'/>
+    let resetTimer = null;
 
-      <path d='M30 90 Q50 20 100 30 Q150 20 170 90 Q140 60 100 65 Q60 60 30 90' fill='%23333'/>
+    function setAngry() {
+      // Scale up the whole figure
+      man.classList.add('angry');
 
-      <ellipse cx='70' cy='100' rx='10' ry='6' fill='white'/>
-      <ellipse cx='130' cy='100' rx='10' ry='6' fill='white'/>
-      <circle cx='70' cy='100' r='3'/>
-      <circle cx='130' cy='100' r='3'/>
+      // Angry V-shaped eyebrows (inner ends drop down)
+      browLeft.setAttribute('x1', '34');
+      browLeft.setAttribute('y1', '50');
+      browLeft.setAttribute('x2', '44');
+      browLeft.setAttribute('y2', '45');
 
-      <path d='M60 85 Q70 80 80 85' stroke='%23333' stroke-width='3' fill='none'/>
-      <path d='M120 85 Q130 80 140 85' stroke='%23333' stroke-width='3' fill='none'/>
+      browRight.setAttribute('x1', '56');
+      browRight.setAttribute('y1', '45');
+      browRight.setAttribute('x2', '66');
+      browRight.setAttribute('y2', '50');
 
-      <path d='M100 105 Q95 120 100 125' stroke='%23c48a6a' stroke-width='2' fill='none'/>
+      // Eyes slightly squinted — make them narrower ellipses
+      eyeLeft.setAttribute('rx', '4');
+      eyeLeft.setAttribute('ry', '2.5');
+      eyeRight.setAttribute('rx', '4');
+      eyeRight.setAttribute('ry', '2.5');
 
-      <path d='M70 140 Q100 155 130 140' stroke='%23333' stroke-width='3' fill='none'/>
-    </svg>`;
+      // Pupils look forward (toward viewer center)
+      pupilLeft.setAttribute('cx', '40');
+      pupilRight.setAttribute('cx', '60');
 
-    const angryFace = `data:image/svg+xml;utf8,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
-      <defs>
-        <radialGradient id='skin' cx='50%' cy='40%' r='60%'>
-          <stop offset='0%' stop-color='%23ffe0bd'/>
-          <stop offset='100%' stop-color='%23e0a889'/>
-        </radialGradient>
-      </defs>
-
-      <ellipse cx='100' cy='105' rx='75' ry='85' fill='url(%23skin)'/>
-
-      <path d='M30 90 Q50 20 100 30 Q150 20 170 90 Q140 60 100 65 Q60 60 30 90' fill='%23333'/>
-
-      <ellipse cx='70' cy='105' rx='10' ry='5' fill='white'/>
-      <ellipse cx='130' cy='105' rx='10' ry='5' fill='white'/>
-      <circle cx='70' cy='105' r='3'/>
-      <circle cx='130' cy='105' r='3'/>
-
-      <line x1='55' y1='85' x2='85' y2='95' stroke='%23333' stroke-width='4'/>
-      <line x1='145' y1='85' x2='115' y2='95' stroke='%23333' stroke-width='4'/>
-
-      <path d='M100 105 Q95 120 100 125' stroke='%23c48a6a' stroke-width='2' fill='none'/>
-
-      <path d='M70 150 Q100 130 130 150' stroke='%23333' stroke-width='4' fill='none'/>
-    </svg>`;
-
-    const man = document.getElementById("man");
-    man.src = normalFace;
-
-    function annoy() {
-      man.src = angryFace;
-      man.classList.add("angry");
-
-      setTimeout(() => {
-        man.src = normalFace;
-        man.classList.remove("angry");
-      }, 800);
+      // Mouth → angry frown
+      mouth.setAttribute('d', 'M 40 76 Q 50 69 60 76');
     }
+
+    function setNormal() {
+      man.classList.remove('angry');
+
+      // Reset eyebrows
+      browLeft.setAttribute('x1', '34');
+      browLeft.setAttribute('y1', '47');
+      browLeft.setAttribute('x2', '44');
+      browLeft.setAttribute('y2', '47');
+
+      browRight.setAttribute('x1', '56');
+      browRight.setAttribute('y1', '47');
+      browRight.setAttribute('x2', '66');
+      browRight.setAttribute('y2', '47');
+
+      // Reset eyes
+      eyeLeft.setAttribute('rx', '4');
+      eyeLeft.setAttribute('ry', '4');
+      eyeRight.setAttribute('rx', '4');
+      eyeRight.setAttribute('ry', '4');
+
+      // Reset pupils
+      pupilLeft.setAttribute('cx', '39');
+      pupilRight.setAttribute('cx', '61');
+
+      // Reset mouth
+      mouth.setAttribute('d', 'M 40 72 Q 50 80 60 72');
+    }
+
+    document.getElementById('annoyBtn').addEventListener('click', () => {
+      // Clear any pending reset so rapid tapping keeps him angry
+      if (resetTimer) clearTimeout(resetTimer);
+
+      setAngry();
+
+      // Return to normal after 1.2 seconds
+      resetTimer = setTimeout(setNormal, 1200);
+    });
   </script>
+
 </body>
 </html>
