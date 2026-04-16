@@ -2,222 +2,294 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Annoy Him</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flag Quiz</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #f0f4f8;
-      font-family: sans-serif;
-      gap: 40px;
-      padding: 20px;
+      padding: 16px;
     }
-
-    .character-container {
-      width: 220px;
-      height: 220px;
-      position: relative;
-    }
-
-    /* ── SVG cartoon man ── */
-    svg#man {
+    .card {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 28px 24px;
       width: 100%;
+      max-width: 420px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .title { font-size: 1.1rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase; }
+    .score-badge {
+      background: #334155;
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .score-badge span { color: #38bdf8; }
+    .progress-bar-bg {
+      background: #334155;
+      border-radius: 999px;
+      height: 6px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
       height: 100%;
-      transition: transform 0.1s ease;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      transition: width 0.4s ease;
     }
-
-    /* Eyes default */
-    .eye-left, .eye-right {
-      transition: all 0.15s ease;
+    .flag-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 28px;
+      height: 140px;
     }
-
-    /* Mouth default */
-    .mouth {
-      transition: d 0.15s ease;
+    .flag-img {
+      width: 220px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      border: 2px solid #334155;
     }
-
-    /* Eyebrows */
-    .brow-left, .brow-right {
-      transition: all 0.15s ease;
+    .question {
+      text-align: center;
+      font-size: 1rem;
+      color: #94a3b8;
+      margin-bottom: 20px;
     }
-
-    /* Angry state applied via JS */
-    svg#man.angry {
-      transform: scale(1.08);
-    }
-
-    /* Button */
-    #annoyBtn {
-      background: #e63946;
-      color: white;
-      border: none;
-      border-radius: 18px;
-      padding: 22px 60px;
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: 1px;
+    .options { display: flex; flex-direction: column; gap: 11px; }
+    .option-btn {
+      background: #334155;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #f1f5f9;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(230, 57, 70, 0.45);
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
     }
-
-    #annoyBtn:active {
-      transform: scale(0.96);
-      box-shadow: 0 3px 10px rgba(230, 57, 70, 0.35);
+    .option-btn:active { transform: scale(0.98); }
+    .option-btn:hover:not(:disabled) { background: #3d5068; border-color: #475569; }
+    .option-btn.correct { background: #14532d; border-color: #22c55e; color: #bbf7d0; }
+    .option-btn.wrong {
+      background: #450a0a;
+      border-color: #ef4444;
+      color: #fecaca;
+      animation: shake 0.35s ease;
     }
+    .option-btn:disabled { cursor: default; }
+    @keyframes shake {
+      0%   { transform: translateX(0); }
+      20%  { transform: translateX(-6px); }
+      40%  { transform: translateX(6px); }
+      60%  { transform: translateX(-4px); }
+      80%  { transform: translateX(4px); }
+      100% { transform: translateX(0); }
+    }
+    .feedback {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.9rem;
+      min-height: 22px;
+      font-weight: 500;
+    }
+    .feedback.correct { color: #22c55e; }
+    .feedback.wrong   { color: #ef4444; }
+    .next-btn {
+      display: none;
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .next-btn:active { transform: scale(0.98); }
+    .next-btn:hover { opacity: 0.92; }
+    .win-screen { display: none; text-align: center; }
+    .trophy { font-size: 5rem; margin-bottom: 16px; line-height: 1; }
+    .win-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+    .win-sub { color: #94a3b8; margin-bottom: 28px; font-size: 1rem; }
+    .play-again-btn {
+      padding: 14px 36px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
+    }
+    .play-again-btn:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
-
-  <div class="character-container">
-    <!--
-      Cartoon man built entirely with inline SVG.
-      IDs on face parts are toggled by JS.
-    -->
-    <svg id="man" viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-
-      <!-- Body -->
-      <rect x="28" y="90" width="44" height="50" rx="8" fill="#4a90d9"/>
-
-      <!-- Neck -->
-      <rect x="43" y="78" width="14" height="16" rx="4" fill="#f4c27f"/>
-
-      <!-- Head -->
-      <ellipse cx="50" cy="58" rx="26" ry="28" fill="#f4c27f"/>
-
-      <!-- Hair -->
-      <ellipse cx="50" cy="32" rx="26" ry="12" fill="#3b2a1a"/>
-      <rect x="24" y="32" width="8" height="14" rx="4" fill="#3b2a1a"/>
-      <rect x="68" y="32" width="8" height="14" rx="4" fill="#3b2a1a"/>
-
-      <!-- Ears -->
-      <ellipse cx="24" cy="58" rx="5" ry="7" fill="#f4c27f"/>
-      <ellipse cx="76" cy="58" rx="5" ry="7" fill="#f4c27f"/>
-
-      <!-- Eyebrows (normal: flat) -->
-      <line id="browLeft"  x1="34" y1="47" x2="44" y2="47" stroke="#3b2a1a" stroke-width="2.5" stroke-linecap="round"/>
-      <line id="browRight" x1="56" y1="47" x2="66" y2="47" stroke="#3b2a1a" stroke-width="2.5" stroke-linecap="round"/>
-
-      <!-- Eyes (normal: circles) -->
-      <circle id="eyeLeft"  cx="39" cy="55" r="4" fill="white"/>
-      <circle id="eyeRight" cx="61" cy="55" r="4" fill="white"/>
-      <circle id="pupilLeft"  cx="39" cy="55" r="2" fill="#222"/>
-      <circle id="pupilRight" cx="61" cy="55" r="2" fill="#222"/>
-
-      <!-- Nose -->
-      <ellipse cx="50" cy="63" rx="3" ry="2" fill="#e0a86a"/>
-
-      <!-- Mouth (normal: smile) -->
-      <path id="mouth" d="M 40 72 Q 50 80 60 72" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/>
-
-      <!-- Arms -->
-      <rect x="6"  y="90" width="22" height="10" rx="5" fill="#4a90d9"/>
-      <rect x="72" y="90" width="22" height="10" rx="5" fill="#4a90d9"/>
-
-      <!-- Legs -->
-      <rect x="30" y="136" width="16" height="20" rx="6" fill="#2c2c54"/>
-      <rect x="54" y="136" width="16" height="20" rx="6" fill="#2c2c54"/>
-
-      <!-- Shoes -->
-      <ellipse cx="38" cy="156" rx="10" ry="5" fill="#1a1a2e"/>
-      <ellipse cx="62" cy="156" rx="10" ry="5" fill="#1a1a2e"/>
-
-    </svg>
+<div class="card">
+  <div id="quizContent">
+    <div class="header">
+      <div class="title">Flag Quiz</div>
+      <div class="score-badge"><span id="scoreNum">0</span>&nbsp;/ 10</div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="flag-wrap">
+      <img class="flag-img" id="flagImg" src="" alt="Country flag" />
+    </div>
+    <div class="question">Which country does this flag belong to?</div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next flag &rarr;</button>
   </div>
+  <div class="win-screen" id="winScreen">
+    <div class="trophy">&#127942;</div>
+    <div class="win-title">You did it!</div>
+    <div class="win-sub">You correctly identified 10 flags.<br>Geography master unlocked!</div>
+    <button class="play-again-btn" onclick="startGame()">Play again</button>
+  </div>
+</div>
+<script>
+var COUNTRIES = [
+  {name:"Afghanistan",code:"af"},{name:"Albania",code:"al"},{name:"Algeria",code:"dz"},
+  {name:"Argentina",code:"ar"},{name:"Australia",code:"au"},{name:"Austria",code:"at"},
+  {name:"Bangladesh",code:"bd"},{name:"Belgium",code:"be"},{name:"Bolivia",code:"bo"},
+  {name:"Brazil",code:"br"},{name:"Bulgaria",code:"bg"},{name:"Cambodia",code:"kh"},
+  {name:"Canada",code:"ca"},{name:"Chile",code:"cl"},{name:"China",code:"cn"},
+  {name:"Colombia",code:"co"},{name:"Croatia",code:"hr"},{name:"Czech Republic",code:"cz"},
+  {name:"Denmark",code:"dk"},{name:"Ecuador",code:"ec"},{name:"Egypt",code:"eg"},
+  {name:"Ethiopia",code:"et"},{name:"Finland",code:"fi"},{name:"France",code:"fr"},
+  {name:"Germany",code:"de"},{name:"Ghana",code:"gh"},{name:"Greece",code:"gr"},
+  {name:"Hungary",code:"hu"},{name:"Iceland",code:"is"},{name:"India",code:"in"},
+  {name:"Indonesia",code:"id"},{name:"Iran",code:"ir"},{name:"Iraq",code:"iq"},
+  {name:"Ireland",code:"ie"},{name:"Israel",code:"il"},{name:"Italy",code:"it"},
+  {name:"Jamaica",code:"jm"},{name:"Japan",code:"jp"},{name:"Jordan",code:"jo"},
+  {name:"Kenya",code:"ke"},{name:"South Korea",code:"kr"},{name:"Kuwait",code:"kw"},
+  {name:"Lebanon",code:"lb"},{name:"Libya",code:"ly"},{name:"Malaysia",code:"my"},
+  {name:"Mexico",code:"mx"},{name:"Mongolia",code:"mn"},{name:"Morocco",code:"ma"},
+  {name:"Mozambique",code:"mz"},{name:"Myanmar",code:"mm"},{name:"Nepal",code:"np"},
+  {name:"Netherlands",code:"nl"},{name:"New Zealand",code:"nz"},{name:"Nigeria",code:"ng"},
+  {name:"North Macedonia",code:"mk"},{name:"Norway",code:"no"},{name:"Pakistan",code:"pk"},
+  {name:"Peru",code:"pe"},{name:"Philippines",code:"ph"},{name:"Poland",code:"pl"},
+  {name:"Portugal",code:"pt"},{name:"Romania",code:"ro"},{name:"Russia",code:"ru"},
+  {name:"Saudi Arabia",code:"sa"},{name:"Senegal",code:"sn"},{name:"Serbia",code:"rs"},
+  {name:"Singapore",code:"sg"},{name:"Slovakia",code:"sk"},{name:"Slovenia",code:"si"},
+  {name:"South Africa",code:"za"},{name:"Spain",code:"es"},{name:"Sri Lanka",code:"lk"},
+  {name:"Sweden",code:"se"},{name:"Switzerland",code:"ch"},{name:"Syria",code:"sy"},
+  {name:"Tanzania",code:"tz"},{name:"Thailand",code:"th"},{name:"Tunisia",code:"tn"},
+  {name:"Turkey",code:"tr"},{name:"Uganda",code:"ug"},{name:"Ukraine",code:"ua"},
+  {name:"United Arab Emirates",code:"ae"},{name:"United Kingdom",code:"gb"},
+  {name:"United States",code:"us"},{name:"Uruguay",code:"uy"},{name:"Venezuela",code:"ve"},
+  {name:"Vietnam",code:"vn"},{name:"Yemen",code:"ye"},{name:"Zimbabwe",code:"zw"}
+];
 
-  <button id="annoyBtn">ANNOY</button>
+var score = 0, currentAnswer = "", answeredCorrectly = false, queue = [];
 
-  <script>
-    const man        = document.getElementById('man');
-    const browLeft   = document.getElementById('browLeft');
-    const browRight  = document.getElementById('browRight');
-    const eyeLeft    = document.getElementById('eyeLeft');
-    const eyeRight   = document.getElementById('eyeRight');
-    const pupilLeft  = document.getElementById('pupilLeft');
-    const pupilRight = document.getElementById('pupilRight');
-    const mouth      = document.getElementById('mouth');
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
 
-    let resetTimer = null;
+function startGame() {
+  score = 0;
+  queue = shuffle(COUNTRIES);
+  document.getElementById("winScreen").style.display = "none";
+  document.getElementById("quizContent").style.display = "block";
+  updateScore();
+  loadQuestion();
+}
 
-    function setAngry() {
-      // Scale up the whole figure
-      man.classList.add('angry');
+function updateScore() {
+  document.getElementById("scoreNum").textContent = score;
+  document.getElementById("progressFill").style.width = (score / 10 * 100) + "%";
+}
 
-      // Angry V-shaped eyebrows (inner ends drop down)
-      browLeft.setAttribute('x1', '34');
-      browLeft.setAttribute('y1', '50');
-      browLeft.setAttribute('x2', '44');
-      browLeft.setAttribute('y2', '45');
+function loadQuestion() {
+  answeredCorrectly = false;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("nextBtn").style.display = "none";
+  var correct = queue[score % queue.length];
+  currentAnswer = correct.name;
+  document.getElementById("flagImg").src = "https://flagcdn.com/w320/" + correct.code + ".png";
+  document.getElementById("flagImg").alt = "Flag of " + correct.name;
+  var others = shuffle(COUNTRIES.filter(function(c){ return c.name !== correct.name; })).slice(0, 3);
+  var choices = shuffle([correct].concat(others));
+  var container = document.getElementById("options");
+  container.innerHTML = "";
+  choices.forEach(function(c) {
+    var btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = c.name;
+    (function(b, name){ b.onclick = function(){ handleAnswer(b, name); }; })(btn, c.name);
+    container.appendChild(btn);
+  });
+}
 
-      browRight.setAttribute('x1', '56');
-      browRight.setAttribute('y1', '45');
-      browRight.setAttribute('x2', '66');
-      browRight.setAttribute('y2', '50');
-
-      // Eyes slightly squinted — make them narrower ellipses
-      eyeLeft.setAttribute('rx', '4');
-      eyeLeft.setAttribute('ry', '2.5');
-      eyeRight.setAttribute('rx', '4');
-      eyeRight.setAttribute('ry', '2.5');
-
-      // Pupils look forward (toward viewer center)
-      pupilLeft.setAttribute('cx', '40');
-      pupilRight.setAttribute('cx', '60');
-
-      // Mouth → angry frown
-      mouth.setAttribute('d', 'M 40 76 Q 50 69 60 76');
+function handleAnswer(btn, chosen) {
+  if (answeredCorrectly) return;
+  var allBtns = document.querySelectorAll(".option-btn");
+  if (chosen === currentAnswer) {
+    btn.classList.add("correct");
+    for (var i = 0; i < allBtns.length; i++) allBtns[i].disabled = true;
+    answeredCorrectly = true;
+    score++;
+    updateScore();
+    if (score >= 10) {
+      document.getElementById("feedback").textContent = "Correct!";
+      document.getElementById("feedback").className = "feedback correct";
+      setTimeout(function() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("winScreen").style.display = "block";
+      }, 900);
+    } else {
+      document.getElementById("feedback").textContent = "Correct!";
+      document.getElementById("feedback").className = "feedback correct";
+      document.getElementById("nextBtn").style.display = "block";
     }
+  } else {
+    btn.classList.add("wrong");
+    document.getElementById("feedback").textContent = "Not quite - try again!";
+    document.getElementById("feedback").className = "feedback wrong";
+    setTimeout(function() {
+      btn.classList.remove("wrong");
+      btn.disabled = true;
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("feedback").className = "feedback";
+    }, 800);
+  }
+}
 
-    function setNormal() {
-      man.classList.remove('angry');
-
-      // Reset eyebrows
-      browLeft.setAttribute('x1', '34');
-      browLeft.setAttribute('y1', '47');
-      browLeft.setAttribute('x2', '44');
-      browLeft.setAttribute('y2', '47');
-
-      browRight.setAttribute('x1', '56');
-      browRight.setAttribute('y1', '47');
-      browRight.setAttribute('x2', '66');
-      browRight.setAttribute('y2', '47');
-
-      // Reset eyes
-      eyeLeft.setAttribute('rx', '4');
-      eyeLeft.setAttribute('ry', '4');
-      eyeRight.setAttribute('rx', '4');
-      eyeRight.setAttribute('ry', '4');
-
-      // Reset pupils
-      pupilLeft.setAttribute('cx', '39');
-      pupilRight.setAttribute('cx', '61');
-
-      // Reset mouth
-      mouth.setAttribute('d', 'M 40 72 Q 50 80 60 72');
-    }
-
-    document.getElementById('annoyBtn').addEventListener('click', () => {
-      // Clear any pending reset so rapid tapping keeps him angry
-      if (resetTimer) clearTimeout(resetTimer);
-
-      setAngry();
-
-      // Return to normal after 1.2 seconds
-      resetTimer = setTimeout(setNormal, 1200);
-    });
-  </script>
-
+function nextQuestion() { loadQuestion(); }
+startGame();
+</script>
 </body>
 </html>
